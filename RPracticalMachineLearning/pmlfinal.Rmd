@@ -1,0 +1,104 @@
+---
+title: "PML Submission"
+author: "Nicholas Boldt"
+date: "12/18/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load Data
+```{r loading, cache = TRUE}
+traindf <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv")
+testdf <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv")
+```
+
+# Clean dataset
+```{r cleaning, message = FALSE, warning=FALSE}
+### removing columns
+# new_window and num_window will not be useful for this analysis
+# new_window -> mostly no -> total, avg, std, min, max column have lots of NA
+thresh.na <- 0.2 # data column must not have more than 20% NA
+keep <- unlist(lapply(traindf, function(x) mean(is.na(as.numeric(x))) < thresh.na))
+
+# remove certain variables
+keep[c("X","raw_timestamp_part_1","raw_timestamp_part_2",
+       "num_window","new_window")] = FALSE
+keep[grep("total", names(keep))] = FALSE
+
+# keep certain variables
+keep[c("user_name", "classe")] = TRUE
+
+# filter out non-useful variables
+library(dplyr)
+trainclean <- traindf[,keep]
+testclean <- testdf[,keep]
+
+# modify factor variables
+trainclean <- trainclean %>% 
+  mutate(classe = factor(classe)) %>%
+  mutate(user_name = factor(user_name))
+testclean <- testclean %>% 
+  mutate(user_name = factor(user_name))
+# note that test dataset does not have defined classe -> quiz
+
+# we can likely keep user_name as a factor variable, assuming the test data has same users
+library(caret)
+
+```
+
+# Build Models (KNN, Random Forest, SVM)
+
+caret package handles preprocessing (normalization), cross-validation, etc.  
+- 5-fold cross validation  
+```{r control-params, cache = TRUE}
+# set some controls for training
+trainctrl <- trainControl(method = "cv", number = 5, 
+                          savePredictions = TRUE, verboseIter = FALSE)
+```
+
+```{r knn-model, cache = TRUE}
+set.seed(42)
+knn.model <- train(classe~., data=trainclean, method = "knn",
+                   tuneLength = 10,
+                   preProcess = c("center", "scale"),
+                   trControl = trainctrl,
+                   metric="Kappa")
+```
+
+```{r random-forest, cache = TRUE}
+rf.model <- train(classe~., data=trainclean, method = "rf", 
+                  tuneLength = 10,
+                  ntree=100,
+                  importance=TRUE,
+                  preProcess = c("center", "scale"),
+                  trControl = trainctrl,
+                  metric="Kappa")
+```
+
+```{r svm-model, cache = TRUE}
+svm.model <- train(classe~., data=trainclean, method = "svmRadial", 
+                   tuneLength = 5,
+                   preProcess = c("center", "scale"),
+                   trControl = trainctrl,
+                   metric="Kappa")
+```
+
+# Look at tuned models
+```{r}
+knn.model
+rf.model
+svm.model
+```
+
+# Best model
+Looking at the tuned models, it can be seen that the random forest model 
+obtained the best prediction accuracy. As we used 5-fold cross-validation,
+this corresponds to a prediction of out-of-sample accuracy.  
+  
+This model achieved perfect accuracy.
+```{r}
+confusionMatrix(predict(rf.model, trainclean), trainclean$classe)
+```
