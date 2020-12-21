@@ -1,0 +1,21 @@
+---
+title: "LeafletProject"
+author: "Nicholas Boldt"
+date: "12/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Simplest Map
+
+```{r leaflet map}
+library(leaflet)
+
+demo <- leaflet() %>% addTiles() %>%
+  addMarkers(lat = 40.7128, lng = -74.0060, popup = "NYC")
+
+demo
+```

@@ -1,0 +1,19 @@
+---
+title: "Plotly Project"
+author: "Nicholas Boldt"
+date: "12/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Simplest Plot - Weight vs MPG
+
+```{r leaflet map, message = FALSE, warning = FALSE}
+library(plotly)
+data("mtcars")
+
+plot_ly(mtcars, x = ~wt, y = ~mpg)
+```

@@ -1,0 +1,12 @@
+name: RDataProductsDemo
+title: RDataProductsDemo
+username:
+account: riftguardian
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3423251
+bundleId: 4016523
+url: https://riftguardian.shinyapps.io/RDataProductsDemo/
+when: 1608583286.02483
+asMultiple: FALSE
+asStatic: FALSE
